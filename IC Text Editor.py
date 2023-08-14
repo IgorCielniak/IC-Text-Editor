@@ -10,7 +10,117 @@ import datetime
 import webbrowser
 import subprocess
 from pylab import show, arange, sin, plot, pi
+import re
+import sys
+import pyflakes.api
+
+class CustomInterpreter:
+        def __init__(self):
+            self.variables = {}
+            self.functions = {}
+
+        def interpret(self, program):
+            lines = program.split('\n')
+
+            for line in lines:
+                line = line.strip()
+
+                if line.startswith("PRINT"):
+                    value = line[len("PRINT"):].strip()
+                    self.print_value(value)
+                elif line.startswith("INPUT"):
+                    variable = line[len("INPUT"):].strip()
+                    self.custom_input(variable)
+                elif "=" in line:
+                    variable, expression = line.split('=')
+                    variable = variable.strip()
+                    expression = expression.strip()
+                    self.assign_variable(variable, expression)
+                elif line.startswith("DEF"):
+                    self.define_function(line)
+                elif line == "STOP":
+                    self.stop_program()
+                else:
+                    self.execute_function(line)
+
+        def assign_variable(self, variable, expression):
+            value = self.evaluate_expression(expression)
+
+            if value is not None:
+                self.variables[variable] = value
+            else:
+                print(f"Invalid expression: {expression}")
+
+        def evaluate_expression(self, expression):
+            if re.match(r"^\d+$", expression):
+                return int(expression)
+
+            if expression in self.variables:
+                return self.variables[expression]
+
+            if re.match(r'^".*"$', expression):
+                return expression[1:-1]
+
+            if "+" in expression:
+                parts = expression.split("+")
+                evaluated_parts = [self.evaluate_expression(part.strip()) for part in parts]
+                if all(isinstance(part, str) for part in evaluated_parts):
+                    return "".join(evaluated_parts)
+
+            try:
+                return eval(expression, {}, self.variables)
+            except NameError:
+                print(f"Unknown variable: {expression}")
+            except:
+                print(f"Invalid expression: {expression}")
+
+        def print_value(self, value):
+            evaluated_value = self.evaluate_expression(value)
+
+            if evaluated_value is not None:
+                print(evaluated_value)
+
+        def custom_input(self, variable):
+            prompt = f"Enter a value for {variable}: "
+            value = self.get_input(prompt)
+            self.variables[variable] = value
+
+        def get_input(self, prompt):
+            if sys.stdin.isatty():
+                return input(prompt)
+            else:
+                sys.stdout.write(prompt)
+                sys.stdout.flush()
+                return sys.stdin.readline().rstrip('\n')
+
+        def define_function(self, line):
+            match = re.match(r"def\s+(\w+)\s*(\{.*?\})?:", line)
+            if match:
+                function_name = match.group(1)
+                function_args = match.group(2)
+                self.functions[function_name] = function_args
+
+        def execute_function(self, line):
+            match = re.match(r"(\w+)\s*(\{.*?\})?", line)
+            if match:
+                function_name = match.group(1)
+                if function_name in self.functions:
+                    function_args = match.group(2)
+                    if function_args:
+                        self.interpret(function_args)
+
+        def stop_program(self):
+            input("Press Enter to exit...")
+
+interpreter = CustomInterpreter()
+
+
 class TextEditor:
+
+    def run_code(self):
+        current_tab = self.text_areas[self.current_tab]
+        code = current_tab.get("1.0", tk.END)
+        interpreter.interpret(code)
 
     def shourtcats(self):
         root2 = tk.Tk()
@@ -72,7 +182,7 @@ class TextEditor:
         messagebox.showinfo("Table", "Table should be in new tab")
 
     def info(self):
-        version = 8.2
+        version = 7.8
         messagebox.showinfo("Info", f"""
         version {version} 
         IC Text Editor was maked by Igor Cielniak.
@@ -188,6 +298,10 @@ limitations under the License.
         addons_menu.add_command(label="Run app", command=self.run)
         menu.add_cascade(label="Addons", menu=addons_menu)
 
+        addons_menu = tk.Menu(menu, tearoff=0)
+        addons_menu.add_command(label="Run code", command=self.run_code)
+        menu.add_cascade(label="Pryzma", menu=addons_menu)
+
         settings_menu = tk.Menu(menu, tearoff=0)
         settings_menu.add_command(label="Cange font size", command=self.change_font_size)
         settings_menu.add_command(label="Shourtcuts", command=self.shourtcats)
@@ -266,7 +380,7 @@ when path contain spaces it will don't work.
 
     def save_file_as(self):
         current_tab = self.text_areas[self.current_tab]
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt",filetypes=[("Text Files", "*.txt"), ("All Files", "*.*"), ("Pryzma", "*.pryzma"), ("Doc", "*.doc"), ("python file", "*.py"), ("rtf", "*.rtf"), ("docx", "*.docx"), ("odt", "*.odt"), ("css", "*.css"), ("HTML", "*.html"), ("xml", "*.xml"), ("wps", "*.wps"), ("java script", "*.js"), ("JSON", "*.json")])
+        file_path = filedialog.asksaveasfilename(defaultextension="*.*",filetypes=[("Text Files", "*.txt"), ("All Files", "*.*"), ("Pryzma", "*.pryzma"), ("Doc", "*.doc"), ("python file", "*.py"), ("rtf", "*.rtf"), ("docx", "*.docx"), ("odt", "*.odt"), ("css", "*.css"), ("HTML", "*.html"), ("xml", "*.xml"), ("wps", "*.wps"), ("java script", "*.js"), ("JSON", "*.json")])
         if file_path:
             try:
                 with open(file_path, "w") as file:
@@ -297,18 +411,3 @@ text_editor = TextEditor(root)
 root.mainloop()
 
 #you really went through all the code!?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

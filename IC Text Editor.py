@@ -202,8 +202,11 @@ limitations under the License.
         about_menu = tk.Menu(menu, tearoff=0)
         about_menu.add_command(label="Info", command=self.info)
         about_menu.add_command(label="Licence", command=self.licencja)
-        about_menu.add_command(label="Website", command=self.strona)
+        about_menu.add_command(label="contact", command=self.contact)
         menu.add_cascade(label="About", menu=about_menu)
+
+    def contact(self):
+        messagebox.showinfo("igorcielniak@gmail.com")
 
     def change_font_size(self):
         text_widget = self.text_areas[self.current_tab]
@@ -216,9 +219,6 @@ limitations under the License.
 
     def quit():
         quit
-
-    def strona(self):
-        webbrowser.open("https://igorcielniak-com.webnode.page")
 
     def add_addon_password(self):
         try:

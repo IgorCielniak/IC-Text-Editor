@@ -9,10 +9,8 @@ from tkinter.scrolledtext import ScrolledText
 import datetime
 import webbrowser
 import subprocess
-from pylab import show, arange, sin, plot, pi
 import re
 import sys
-import pyflakes.api
 
 class TextEditor:
 
@@ -40,21 +38,6 @@ class TextEditor:
         tree.insert('', '7', values=('Table', 'Control-Shift-T'))
 
         root.mainloop()
-
-    t = arange(0.0, 2.0, 0.01)
-    s = sin( 2 * pi * t)
-    plot(t, s)
-    
-    def Charte(self):
-
-        t = arange(0.0, 2.0, 0.01)
-        s = sin( 2 * pi * t)
-        plot(t, s)
-
-        show()
-
-    def Chart(self):
-        self.Charte()
 
     def add_tab_with_table(self):
 
@@ -185,7 +168,6 @@ limitations under the License.
 
         insert_menu = tk.Menu(menu, tearoff=0)
         insert_menu.add_command(label="Table", command=self.add_tab_with_table)
-        insert_menu.add_command(label="Chart", command=self.Chart)
         insert_menu.add_command(label="Date and time", command=self.write_date_time)
         menu.add_cascade(label="Insert", menu=insert_menu)
 

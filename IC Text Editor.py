@@ -14,14 +14,9 @@ import sys
 
 class TextEditor:
 
-    def run_code(self):
-        current_tab = self.text_areas[self.current_tab]
-        code = current_tab.get("1.0", tk.END)
-        interpreter.interpret(code)
-
-    def shourtcats(self):
+    def shortcats(self):
         root2 = tk.Tk()
-        root2.title("Shourtcats")
+        root2.title("Shortcats")
 
         tree = ttk.Treeview(root2, columns=('1', '2'), show='headings')
         tree.pack()
@@ -171,14 +166,9 @@ limitations under the License.
         insert_menu.add_command(label="Date and time", command=self.write_date_time)
         menu.add_cascade(label="Insert", menu=insert_menu)
 
-        addons_menu = tk.Menu(menu, tearoff=0)
-        addons_menu.add_command(label="add password gen", command=self.add_addon_password)
-        addons_menu.add_command(label="Run app", command=self.run)
-        menu.add_cascade(label="Addons", menu=addons_menu)
-
         settings_menu = tk.Menu(menu, tearoff=0)
         settings_menu.add_command(label="Cange font size", command=self.change_font_size)
-        settings_menu.add_command(label="Shourtcuts", command=self.shourtcats)
+        settings_menu.add_command(label="Shortcuts", command=self.shortcats)
         menu.add_cascade(label="Settings", menu=settings_menu)
 
         about_menu = tk.Menu(menu, tearoff=0)
@@ -188,7 +178,7 @@ limitations under the License.
         menu.add_cascade(label="About", menu=about_menu)
 
     def contact(self):
-        messagebox.showinfo("igorcielniak@gmail.com")
+        messagebox.showinfo("igorcielniak.contact@gmail.com")
 
     def change_font_size(self):
         text_widget = self.text_areas[self.current_tab]
@@ -201,23 +191,6 @@ limitations under the License.
 
     def quit():
         quit
-
-    def add_addon_password(self):
-        try:
-            import ICpasswordgen
-            ICpasswordgen.passwordgenerate()
-        except ModuleNotFoundError:
-            messagebox.showinfo("Addon not found","Addon not found ,you probably change name of file with addon or you don't put it in the same folder as the app.")
-
-    def run(self):
-
-        app_path = simpledialog.askstring("run", """                          Warning:
-when path contain spaces it will don't work.
-                        Path to app:""")
-        process = subprocess.Popen(f"start {app_path}",stdout=subprocess.PIPE, shell=True)
-        proc_stdout = process.communicate()[0].strip()
-        print(proc_stdout)
-
 
     def new_file(self):
         self.create_tab()

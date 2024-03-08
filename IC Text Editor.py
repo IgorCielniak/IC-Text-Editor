@@ -25,8 +25,8 @@ class TextEditor:
         self.text_areas = []
         self.current_tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
-        self.highlight_rules = {}  # Dictionary to store word-color pairs
-        self.load_highlight_rules(["C:\\Users\\User\\Desktop\\work\\projects\\IgorCielniak\\IC Text Editor\\pryzma.txt"])  # Example list of file paths
+        self.highlight_rules = {}
+        self.load_highlight_rules(["C:\\Users\\User\\Desktop\\work\\projects\\IgorCielniak\\IC Text Editor\\pryzma_syntax_highlighting.txt"]) #example path to syntax file
         self.create_tab()
         self.init_menu()
 
@@ -47,7 +47,7 @@ class TextEditor:
                 messagebox.showinfo("Info", f"'{search_query}' not found in text.")
 
     def load_highlight_rules(self, file_paths):
-        self.highlight_rules = {}  # Reset highlight rules
+        self.highlight_rules = {}
         for file_path in file_paths:
             try:
                 with open(file_path, "r") as file:
@@ -63,7 +63,7 @@ class TextEditor:
 
     def create_tab(self):
         text_area = ScrolledText(self.notebook, wrap=tk.WORD)
-        text_area.bind('<KeyRelease>', self.highlight_words) # bind key release event
+        text_area.bind('<KeyRelease>', self.highlight_words)
         self.text_areas.append(text_area)
         self.notebook.add(text_area, text=f"Tab {len(self.text_areas)}")
         self.notebook.pack(expand=tk.YES, fill=tk.BOTH)
@@ -145,7 +145,7 @@ class TextEditor:
 
     def highlight_words(self, event):
         text_widget = self.text_areas[self.current_tab]
-        text_widget.tag_remove("highlight", "1.0", tk.END)  # Clear previous highlighting
+        text_widget.tag_remove("highlight", "1.0", tk.END)
         content = text_widget.get("1.0", tk.END)
         for word, color in self.highlight_rules.items():
             start = "1.0"

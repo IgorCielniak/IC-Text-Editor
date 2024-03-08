@@ -1,0 +1,15 @@
+print:cyan
+cprint:cyan
+input:cyan
+use:magenta
+stop:magenta
+exec:magenta
+ifn:medium spring green
+if:medium spring green
+/:red
+@:red
+append:blue
+pop:blue
+write:orange
+read:orange
+for:purple

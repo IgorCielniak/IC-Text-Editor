@@ -8,6 +8,7 @@ from tkinter import messagebox
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 import datetime
+import json
 
 class TextEditor:
     def __init__(self, master):
@@ -26,40 +27,35 @@ class TextEditor:
         self.current_tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
         self.highlight_rules = {}
-        self.load_highlight_rules(["C:\\Users\\User\\Desktop\\work\\projects\\IgorCielniak\\IC Text Editor\\pryzma_syntax_highlighting.txt"]) #example path to syntax file
+        self.syntax_files = []
+        self.load_highlight_rules("C:\\Users\\User\\Desktop\\work\\projects\\IgorCielniak\\IC Text Editor\\config.json")  # Load from config file
         self.create_tab()
         self.init_menu()
 
-    def find_text(self):
-        text_widget = self.text_areas[self.current_tab]
-        
-        search_query = simpledialog.askstring("Find", "Enter search query:")
+    def load_highlight_rules(self, file_path):
+        try:
+            with open(file_path, "r") as file:
+                config_data = json.load(file)
+                if "syntax_files" in config_data:
+                    self.syntax_files = config_data["syntax_files"]
+                    for syntax_file in self.syntax_files:
+                        self.parse_syntax_file(syntax_file)
+        except FileNotFoundError:
+            messagebox.showwarning("Warning", f"Configuration file not found: {file_path}. No custom highlighting will be applied.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load configuration file from {file_path}: {str(e)}")
 
-        if search_query:
-            search_results = text_widget.search(search_query, "1.0", tk.END)
-            if search_results:
-                text_widget.tag_remove(tk.SEL, "1.0", tk.END)
-                text_widget.tag_add(tk.SEL, search_results, f"{search_results}+{len(search_query)}c")
-                text_widget.mark_set(tk.INSERT, search_results)
-                text_widget.see(tk.INSERT)
-                messagebox.showinfo("Info", f"Found '{search_query}' in text.")
-            else:
-                messagebox.showinfo("Info", f"'{search_query}' not found in text.")
-
-    def load_highlight_rules(self, file_paths):
-        self.highlight_rules = {}
-        for file_path in file_paths:
-            try:
-                with open(file_path, "r") as file:
-                    for line in file:
+    def parse_syntax_file(self, syntax_file):
+        try:
+            with open(syntax_file, "r") as file:
+                for line in file:
+                    if ":" in line:
                         word, color = line.strip().split(":")
                         self.highlight_rules[word.strip()] = color.strip()
-            except FileNotFoundError:
-                messagebox.showwarning("Warning", f"Highlight rules file not found: {file_path}. No custom highlighting will be applied.")
-            except ValueError:
-                continue
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to load highlight rules from {file_path}: {str(e)}")
+        except FileNotFoundError:
+            messagebox.showwarning("Warning", f"Syntax file not found: {syntax_file}. No custom highlighting will be applied.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to parse syntax file {syntax_file}: {str(e)}")
 
     def create_tab(self):
         text_area = ScrolledText(self.notebook, wrap=tk.WORD)
@@ -80,6 +76,7 @@ class TextEditor:
         menu = tk.Menu(self.master)
         self.master.config(menu=menu)
 
+        # File Menu
         file_menu = tk.Menu(menu, tearoff=0)
         file_menu.add_command(label="New Tab", command=self.new_file)
         file_menu.add_command(label="Close Tab", command=self.close_tab)
@@ -90,6 +87,7 @@ class TextEditor:
         file_menu.add_command(label="Exit", command=self.master.quit)
         menu.add_cascade(label="File", menu=file_menu)
 
+        # Edit Menu
         edit_menu = tk.Menu(menu, tearoff=0)
         edit_menu.add_command(label="Cut", command=self.cut)
         edit_menu.add_command(label="Copy", command=self.copy)
@@ -97,16 +95,19 @@ class TextEditor:
         edit_menu.add_command(label="Select All", command=self.select_all)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
+        # Insert Menu
         insert_menu = tk.Menu(menu, tearoff=0)
         insert_menu.add_command(label="Table", command=self.add_tab_with_table)
         insert_menu.add_command(label="Date and time", command=self.write_date_time)
         menu.add_cascade(label="Insert", menu=insert_menu)
 
+        # Settings Menu
         settings_menu = tk.Menu(menu, tearoff=0)
         settings_menu.add_command(label="Change font size", command=self.change_font_size)
         settings_menu.add_command(label="Shortcuts", command=self.shortcats)
         menu.add_cascade(label="Settings", menu=settings_menu)
 
+        # About Menu
         about_menu = tk.Menu(menu, tearoff=0)
         about_menu.add_command(label="Info", command=self.info)
         about_menu.add_command(label="Licence", command=self.licencja)

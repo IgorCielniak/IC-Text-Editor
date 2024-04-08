@@ -38,6 +38,22 @@ class TextEditor:
         self.current_word = ""
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
 
+    def find_text(self):
+        text_widget = self.text_areas[self.current_tab]
+        
+        search_query = simpledialog.askstring("Find", "Enter search query:")
+
+        if search_query:
+            search_results = text_widget.search(search_query, "1.0", tk.END)
+            if search_results:
+                text_widget.tag_remove(tk.SEL, "1.0", tk.END)
+                text_widget.tag_add(tk.SEL, search_results, f"{search_results}+{len(search_query)}c")
+                text_widget.mark_set(tk.INSERT, search_results)
+                text_widget.see(tk.INSERT)
+                messagebox.showinfo("Info", f"Found '{search_query}' in text.")
+            else:
+                messagebox.showinfo("Info", f"'{search_query}' not found in text.")
+
     def handle_key_release(self, event):
         self.highlight_words(event)
         current_text = self.text_areas[0].get("1.0", tk.END).split()
@@ -138,6 +154,7 @@ class TextEditor:
         edit_menu.add_command(label="Copy", command=self.copy)
         edit_menu.add_command(label="Paste", command=self.paste)
         edit_menu.add_command(label="Select All", command=self.select_all)
+        edit_menu.add_command(label="Find Text", command=self.find_text)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
         # Insert Menu
@@ -175,7 +192,7 @@ class TextEditor:
         self.create_tab()
 
     def open_file(self):
-        file_path = tk.filedialog.askopenfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+        file_path = tk.filedialog.askopenfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*"), ("Pryzma",  "*.pryzma"), ("Doc", "*.doc"), ("python file", "*.py"), ("rtf", "*.rtf"), ("docx", "*.docx"), ("odt", "*.odt"), ("css", "*.css"), ("HTML", "*.html"), ("xml", "*.xml"), ("wps", "*.wps"), ("java script", "*.js"), ("JSON", "*.json")])
         if file_path:
             try:
                 with open(file_path, "r") as file:

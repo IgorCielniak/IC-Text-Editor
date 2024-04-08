@@ -1,12 +1,8 @@
 import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog, filedialog
+from tkinter.scrolledtext import ScrolledText
 import os
 import sys
-from tkinter import *
-from tkinter import filedialog
-from tkinter import simpledialog
-from tkinter import messagebox
-from tkinter import ttk
-from tkinter.scrolledtext import ScrolledText
 import datetime
 import json
 
@@ -23,14 +19,63 @@ class TextEditor:
         self.master.bind('<Control-Shift-F>', lambda event: self.find_text())
         self.master.bind('<Control-Shift-O>', lambda event: self.open_file())
         self.master.bind('<Control-Shift-T>', lambda event: self.add_tab_with_table())
+        self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.text_areas = []
         self.current_tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
         self.highlight_rules = {}
         self.syntax_files = []
-        self.load_highlight_rules("C:\\Users\\User\\Desktop\\work\\projects\\IgorCielniak\\IC Text Editor\\config.json")  # Load from config file
+        self.load_highlight_rules("C:\\Users\\User\\Desktop\\Dir\\work\\projects\\IgorCielniak\\IC Text Editor\\config.json")
         self.create_tab()
         self.init_menu()
+
+        self.suggestions_popup = None
+        self.suggestions_listbox = None
+        self.last_word = None
+
+        self.text_areas[-1].bind('<KeyRelease>', self.handle_key_release)
+        self.current_text = self.text_areas[-1].get("1.0", tk.END).split()
+        self.current_word = ""
+        self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
+
+    def handle_key_release(self, event):
+        self.highlight_words(event)
+        current_text = self.text_areas[0].get("1.0", tk.END).split()
+        try:
+            current_word = current_text[len(current_text) - 1]
+            if self.last_word == current_word:
+                return
+            self.last_word = current_word
+            self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(current_word)]
+            if self.suggestions:
+                self.show_suggestions(self.suggestions)
+            else:
+                self.hide_suggestions()
+        except IndexError:
+            self.last_word = None
+
+    def show_suggestions(self, suggestions):
+        if not self.suggestions_popup:
+            self.suggestions_popup = tk.Toplevel(self.master)
+            self.suggestions_popup.wm_overrideredirect(True)
+            self.suggestions_popup.bind('<FocusOut>', lambda event: self.hide_suggestions())
+            self.suggestions_listbox = tk.Listbox(self.suggestions_popup, height=min(len(suggestions), 4))
+            self.suggestions_listbox.pack()
+
+        self.suggestions_listbox.delete(0, tk.END)
+        for suggestion in suggestions:
+            self.suggestions_listbox.insert(tk.END, suggestion)
+
+        x, y, _, h = self.text_areas[self.current_tab].bbox(tk.INSERT)
+        x += self.text_areas[self.current_tab].winfo_rootx() + 2
+        y += self.text_areas[self.current_tab].winfo_rooty() + h + 2
+        self.suggestions_popup.geometry(f"+{x}+{y}")
+        self.suggestions_popup.deiconify()
+
+
+    def hide_suggestions(self):
+        if self.suggestions_popup:
+            self.suggestions_popup.withdraw()
 
     def load_highlight_rules(self, file_path):
         try:
@@ -104,13 +149,13 @@ class TextEditor:
         # Settings Menu
         settings_menu = tk.Menu(menu, tearoff=0)
         settings_menu.add_command(label="Change font size", command=self.change_font_size)
-        settings_menu.add_command(label="Shortcuts", command=self.shortcats)
+        settings_menu.add_command(label="Shortcuts", command=self.shortcuts)
         menu.add_cascade(label="Settings", menu=settings_menu)
 
         # About Menu
         about_menu = tk.Menu(menu, tearoff=0)
         about_menu.add_command(label="Info", command=self.info)
-        about_menu.add_command(label="Licence", command=self.licencja)
+        about_menu.add_command(label="Licence", command=self.license)
         about_menu.add_command(label="Contact", command=self.contact)
         menu.add_cascade(label="About", menu=about_menu)
 
@@ -130,7 +175,7 @@ class TextEditor:
         self.create_tab()
 
     def open_file(self):
-        file_path = filedialog.askopenfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*"), ("Pryzma",  "*.pryzma"), ("Doc", "*.doc"), ("python file", "*.py"), ("rtf", "*.rtf"), ("docx", "*.docx"), ("odt", "*.odt"), ("css", "*.css"), ("HTML", "*.html"), ("xml", "*.xml"), ("wps", "*.wps"), ("java script", "*.js"), ("JSON", "*.json")])
+        file_path = tk.filedialog.askopenfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
         if file_path:
             try:
                 with open(file_path, "r") as file:
@@ -176,7 +221,7 @@ class TextEditor:
 
     def save_file_as(self):
         current_tab = self.text_areas[self.current_tab]
-        file_path = filedialog.asksaveasfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+        file_path = tk.filedialog.asksaveasfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
         if file_path:
             try:
                 with open(file_path, "w") as file:
@@ -208,7 +253,7 @@ class TextEditor:
         IC Text Editor was made by Igor Cielniak.
         © 2023 Igor Cielniak all rights reserved.""")
 
-    def licencja(self):
+    def license(self):
         messagebox.showinfo("Licence", """
 Copyright 2023 Igor Cielniak
 
@@ -229,23 +274,23 @@ limitations under the License.
     def add_tab_with_table(self):
         table_sizeh = simpledialog.askinteger("Table Size", "Enter table size horizontal:")
         table_sizev = simpledialog.askinteger("Table Size", "Enter table size vertical:")
-        frame = Frame(self.notebook)
+        frame = tk.Frame(self.notebook)
         rows = []
         try:
             for i in range(int(table_sizev)):
                 cols = []
                 for j in range(int(table_sizeh)):
-                    e = Entry(frame, relief=GROOVE)
-                    e.grid(row=i, column=j, sticky=NSEW)
+                    e = tk.Entry(frame, relief=tk.GROOVE)
+                    e.grid(row=i, column=j, sticky=tk.NSEW)
                 rows.append(cols)
             self.notebook.add(frame, text="Table")
         except TypeError:
             return
         messagebox.showinfo("Table", "Table should be in new tab")
 
-    def shortcats(self):
+    def shortcuts(self):
         root2 = tk.Tk()
-        root2.title("Shortcats")
+        root2.title("Shortcuts")
 
         tree = ttk.Treeview(root2, columns=('1', '2'), show='headings')
         tree.pack()
@@ -269,6 +314,22 @@ limitations under the License.
         text_widget = self.text_areas[self.current_tab]
         cursor_pos = text_widget.index(tk.INSERT)
         text_widget.insert(cursor_pos, date_time_str)
+
+    def auto_complete(self):
+        current_text = self.text_areas[0].get("1.0", tk.END).split()
+        current_word = current_text[len(current_text) - 1]
+        if self.suggestions[0].startswith(current_word):
+            text_widget = self.text_areas[self.current_tab]
+            cursor_pos = text_widget.index(tk.INSERT)
+            first_suggestion = self.suggestions_listbox.get(0)
+            cursor_pos = cursor_pos.split(".")
+            line = str(cursor_pos[0])
+            cursor_pos = int(cursor_pos[1])
+            current_word = int(len(current_word))
+            result = line + "." + str(cursor_pos - current_word)
+            cursor_pos = line + "." + str(cursor_pos)
+            text_widget.delete(result, cursor_pos)
+            text_widget.insert(cursor_pos, first_suggestion)
 
 root = tk.Tk()
 text_editor = TextEditor(root)

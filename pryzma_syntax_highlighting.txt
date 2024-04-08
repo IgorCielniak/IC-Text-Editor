@@ -1,15 +1,27 @@
-print:cyan
-cprint:cyan
-input:cyan
-use:magenta
-stop:magenta
-exec:magenta
-ifn:medium spring green
-if:medium spring green
-/:red
-@:red
-append:blue
-pop:blue
-write:orange
-read:orange
-for:purple
+use: magenta
+stop: magenta
+exec: magenta
+ifn: #00FF7F
+if: #00FF7F
+/: red
+@: red
+append: dodger blue
+copy: dodger blue
+pop: dodger blue
+write: orange
+read: orange
+for: purple
+del: magenta
+in: dark sea green
+str: coral
+type: dark violet
+len: dark orange
+split: deep sky blue
+int:coral
+print: cyan
+cprint: cyan
+input: cyan
+while:green yellow
+whilen:green yellow
+#:grey
+++:cornflower blue

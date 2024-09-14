@@ -2,16 +2,24 @@ use: magenta
 stop: magenta
 exec: magenta
 ifn: #00FF7F
+ifs: #00FF7F
+ifb: #00FF7F
 if: #00FF7F
 /: red
 @: red
+{}: red
 append: dodger blue
 copy: dodger blue
+move : dodger blue
+swap : dodger blue
 pop: dodger blue
+all: orange
+index: orange
 write: orange
 read: orange
 for: purple
 del: magenta
+isanumber: magenta
 in: dark sea green
 str: coral
 type: dark violet
@@ -25,3 +33,4 @@ while:green yellow
 whilen:green yellow
 #:grey
 ++:cornflower blue
+--:cornflower blue

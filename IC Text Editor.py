@@ -13,7 +13,6 @@ class TextEditor:
     def __init__(self, master):
         self.master = master
         self.master.title("IC Text Editor")
-        self.master.geometry("650x450")
         self.notebook = ttk.Notebook(self.master)
         self.master.bind('<Control-Shift-N>', lambda event: self.create_tab())
         self.master.bind('<Control-Shift-C>', lambda event: self.close_tab())

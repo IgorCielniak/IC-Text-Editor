@@ -150,7 +150,6 @@ class TextEditor:
         menu = tk.Menu(self.master)
         self.master.config(menu=menu)
 
-        # File Menu
         file_menu = tk.Menu(menu, tearoff=0)
         file_menu.add_command(label="New Tab", command=self.new_file)
         file_menu.add_command(label="Close Tab", command=self.close_tab)
@@ -162,7 +161,6 @@ class TextEditor:
         file_menu.add_command(label="Run", command=self.run)
         menu.add_cascade(label="File", menu=file_menu)
 
-        # Edit Menu
         edit_menu = tk.Menu(menu, tearoff=0)
         edit_menu.add_command(label="Cut", command=self.cut)
         edit_menu.add_command(label="Copy", command=self.copy)
@@ -171,22 +169,20 @@ class TextEditor:
         edit_menu.add_command(label="Find Text", command=self.find_text)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
-        # Insert Menu
         insert_menu = tk.Menu(menu, tearoff=0)
         insert_menu.add_command(label="Table", command=self.add_tab_with_table)
         insert_menu.add_command(label="Date and time", command=self.write_date_time)
         menu.add_cascade(label="Insert", menu=insert_menu)
 
-        # Settings Menu
         settings_menu = tk.Menu(menu, tearoff=0)
         settings_menu.add_command(label="Change font size", command=self.change_font_size)
         settings_menu.add_command(label="Change font color", command=self.changeFg)
         settings_menu.add_command(label="Change background color", command=self.changeBg)
         settings_menu.add_command(label="Shortcuts", command=self.shortcuts)
         settings_menu.add_checkbutton(label="Highliting", variable = self.highlighting)
+        settings_menu.add_command(label="terminal height", command = self.terminalheightfunc)
         menu.add_cascade(label="Settings", menu=settings_menu)
 
-        # About Menu
         about_menu = tk.Menu(menu, tearoff=0)
         about_menu.add_command(label="Info", command=self.info)
         about_menu.add_command(label="Licence", command=self.license)
@@ -377,7 +373,6 @@ limitations under the License.
             text_widget.insert(cursor_pos, first_suggestion)
     
     def run(self):
-        current_tab = self.text_areas[self.current_tab]
         tab_title = self.notebook.tab(self.current_tab, option="text")
         if tab_title.startswith("Tab"):
             self.save_file_as()
@@ -388,11 +383,17 @@ limitations under the License.
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to run: {str(e)}")
 
+    def terminalheightfunc(self):
+        terminalrelheight = simpledialog.askfloat("Change terminal height", "Enter new height:")
+        if terminalrelheight:
+            terminalrely = 1 - terminalrelheight
+            terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight=terminalrelheight)
 
 
-import re
-import sys
-import os
+
+
+
+
 
 class PryzmaInterpreter:
     
@@ -673,7 +674,7 @@ class PryzmaInterpreter:
                     input("Press any key to continue...")
                     break
                 else:
-                    if line == "" or line.startswith("#"):
+                    if line == "" or line.startswith(""):
                         continue
                     else:
                         print(f"Invalid statement at line {PryzmaInterpreter.current_line}: {line}")
@@ -904,7 +905,7 @@ class PryzmaInterpreter:
                             function_def = True
                         else:
                             print(f"Invalid function definition: {line}")
-                    elif line.startswith("") or line.startswith("#"):
+                    elif line.startswith("") or line.startswith(""):
                         continue
                     else:
                         print(f"Invalid statement in imported file: {line}")
@@ -930,7 +931,7 @@ class PryzmaInterpreter:
                             function_def = True
                         else:
                             print(f"Invalid function definition: {line}")
-                    elif line.startswith("") or line.startswith("#"):
+                    elif line.startswith("") or line.startswith(""):
                         continue
                     else:
                         print(f"Invalid statement in imported file: {line}")
@@ -1017,5 +1018,18 @@ PryzmaInterpreter.__init__(PryzmaInterpreter)
 
 
 root = tk.Tk()
+
+root.state('zoomed') 
+
 text_editor = TextEditor(root)
+
+from tkterm import Terminal
+
+terminalrelheight = 0.3
+terminalrely = 1 - terminalrelheight
+
+terminal = Terminal(root)
+terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight = terminalrelheight)
+
+
 root.mainloop()

@@ -288,7 +288,7 @@ class TextEditor:
         self.text_areas[self.current_tab].see(tk.INSERT)
 
     def info(self):
-        version = 7.8
+        version = 7.9
         messagebox.showinfo("Info", f"""
         version {version} 
         IC Text Editor was made by Igor Cielniak.

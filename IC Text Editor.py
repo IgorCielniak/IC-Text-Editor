@@ -7,6 +7,7 @@ import datetime
 import re
 import json
 from tkinter.colorchooser import askcolor
+from tkterm import Terminal
 
 class TextEditor:
     def __init__(self, master):
@@ -1023,7 +1024,6 @@ root.state('zoomed')
 
 text_editor = TextEditor(root)
 
-from tkterm import Terminal
 
 terminalrelheight = 0.3
 terminalrely = 1 - terminalrelheight

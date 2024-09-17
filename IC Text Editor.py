@@ -23,21 +23,25 @@ class TextEditor:
         self.master.bind('<Control-Shift-T>', lambda event: self.add_tab_with_table())
         self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.text_areas = []
-        self.current_tab = 0
+        terminalrelheight = 0.3
+        self.pixeloffset = 90
+        self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
+        self.tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
         self.highlight_rules = {}
         self.highlighting = tk.IntVar(value=1)
         self.syntax_files = []
         self.load_highlight_rules(self.app_dir + "\\config.json")
         self.create_tab()
+        self.tab = self.notebook.index("current")
         self.init_menu()
 
         self.suggestions_popup = None
         self.suggestions_listbox = None
         self.last_word = None
 
-        self.text_areas[-1].bind('<KeyRelease>', self.handle_key_release)
-        self.current_text = self.text_areas[-1].get("1.0", tk.END).split()
+        self.text_areas[self.tab].bind('<KeyRelease>', self.handle_key_release)
+        self.current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
         self.current_word = ""
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
 
@@ -52,7 +56,7 @@ class TextEditor:
             self.text_area.config(fg=hexstr)
 
     def find_text(self):
-        text_widget = self.text_areas[self.current_tab]
+        text_widget = self.text_areas[self.tab]
         
         search_query = simpledialog.askstring("Find", "Enter search query:")
 
@@ -69,7 +73,7 @@ class TextEditor:
 
     def handle_key_release(self, event):
         self.highlight_words(event)
-        current_text = self.text_areas[0].get("1.0", tk.END).split()
+        current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
         try:
             current_word = current_text[len(current_text) - 1]
             if self.last_word == current_word:
@@ -95,9 +99,9 @@ class TextEditor:
         for suggestion in suggestions:
             self.suggestions_listbox.insert(tk.END, suggestion)
 
-        x, y, _, h = self.text_areas[self.current_tab].bbox(tk.INSERT)
-        x += self.text_areas[self.current_tab].winfo_rootx() + 2
-        y += self.text_areas[self.current_tab].winfo_rooty() + h + 2
+        x, y, _, h = self.text_areas[self.tab].bbox(tk.INSERT)
+        x += self.text_areas[self.tab].winfo_rootx() + 2
+        y += self.text_areas[self.tab].winfo_rooty() + h + 2
         self.suggestions_popup.geometry(f"+{x}+{y}")
         self.suggestions_popup.deiconify()
 
@@ -133,18 +137,18 @@ class TextEditor:
 
     def create_tab(self):
         self.text_area = ScrolledText(self.notebook, wrap=tk.WORD)
-        self.text_area.bind('<KeyRelease>', self.highlight_words)
+        self.text_area.bind('<KeyRelease>', self.handle_key_release)
         self.text_areas.append(self.text_area)
         self.notebook.add(self.text_area, text=f"Tab {len(self.text_areas)}")
-        self.notebook.pack(expand=tk.YES, fill=tk.BOTH)
-        self.notebook.select(self.current_tab)
+        self.notebook.pack(expand=tk.YES, fill=tk.BOTH, pady = (0,self.notebookpady))
+        self.notebook.select(self.tab)
 
     def close_tab(self):
         if len(self.text_areas) > 1:
-            current_tab = self.notebook.select()
-            self.notebook.forget(current_tab)
-            self.text_areas.pop(self.current_tab)
-            self.current_tab = self.notebook.select()
+            tab = self.notebook.select()
+            self.notebook.forget(tab)
+            self.text_areas.pop(self.tab)
+            self.tab = self.notebook.select()
 
     def init_menu(self):
         menu = tk.Menu(self.master)
@@ -193,7 +197,7 @@ class TextEditor:
         messagebox.showinfo("Contact", "igorcielniak.contact@gmail.com")
 
     def change_font_size(self):
-        text_widget = self.text_areas[self.current_tab]
+        text_widget = self.text_areas[self.tab]
         font_size = simpledialog.askinteger("Change font size", "Enter new font size:")
         if font_size:
             font = text_widget['font']
@@ -221,9 +225,9 @@ class TextEditor:
                 with open(file_path, "r") as file:
                     content = file.read()
                     self.create_tab()
-                    self.text_areas[self.current_tab].delete("1.0", tk.END)
-                    self.text_areas[self.current_tab].insert("1.0", content)
-                    self.notebook.tab(self.current_tab, text=file_path)
+                    self.text_areas[len(self.text_areas)-1].delete("1.0", tk.END)
+                    self.text_areas[len(self.text_areas)-1].insert("1.0", content)
+                    self.notebook.tab(len(self.text_areas)-1, text=file_path)
                     self.highlight_words(event=None)
                     messagebox.showinfo("Info", f"File opened: {file_path}")
             except Exception as e:
@@ -232,7 +236,8 @@ class TextEditor:
 
     def highlight_words(self, event):
         if self.highlighting.get() == 1:
-            text_widget = self.text_areas[self.current_tab]
+            self.tab = self.notebook.index("current")
+            text_widget = self.text_areas[self.tab]
             text_widget.tag_remove("highlight", "1.0", tk.END)
             for word, color in self.highlight_rules.items():
                 start = "1.0"
@@ -246,46 +251,46 @@ class TextEditor:
                     start = end
 
     def save_file(self):
-        current_tab = self.text_areas[self.current_tab]
-        tab_title = self.notebook.tab(self.current_tab, option="text")
+        tab = self.text_areas[self.tab]
+        tab_title = self.notebook.tab(self.tab, option="text")
         if tab_title.startswith("Tab"):
             self.save_file_as()
         else:
-            file_path = self.notebook.tab(self.current_tab, option="text")
+            file_path = self.notebook.tab(self.tab, option="text")
             try:
                 with open(file_path, "w") as file:
-                    content = current_tab.get("1.0", tk.END)
+                    content = tab.get("1.0", tk.END)
                     file.write(content)
                 messagebox.showinfo("Save", "File saved successfully!")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save file: {str(e)}")
 
     def save_file_as(self):
-        current_tab = self.text_areas[self.current_tab]
+        tab = self.text_areas[self.tab]
         file_path = tk.filedialog.asksaveasfilename(defaultextension="*.*", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
         if file_path:
             try:
                 with open(file_path, "w") as file:
-                    content = current_tab.get("1.0", tk.END)
+                    content = tab.get("1.0", tk.END)
                     file.write(content)
-                self.notebook.tab(self.current_tab, text=file_path)
+                self.notebook.tab(self.tab, text=file_path)
                 messagebox.showinfo("Save As", "File saved successfully!")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save file: {str(e)}")
 
     def cut(self):
-        self.text_areas[self.current_tab].event_generate("<<Cut>>")
+        self.text_areas[self.tab].event_generate("<<Cut>>")
 
     def copy(self):
-        self.text_areas[self.current_tab].event_generate("<<Copy>>")
+        self.text_areas[self.tab].event_generate("<<Copy>>")
 
     def paste(self):
-        self.text_areas[self.current_tab].event_generate("<<Paste>>")
+        self.text_areas[self.tab].event_generate("<<Paste>>")
 
     def select_all(self):
-        self.text_areas[self.current_tab].tag_add(tk.SEL, "1.0", tk.END)
-        self.text_areas[self.current_tab].mark_set(tk.INSERT, "1.0")
-        self.text_areas[self.current_tab].see(tk.INSERT)
+        self.text_areas[self.tab].tag_add(tk.SEL, "1.0", tk.END)
+        self.text_areas[self.tab].mark_set(tk.INSERT, "1.0")
+        self.text_areas[self.tab].see(tk.INSERT)
 
     def info(self):
         version = 7.9
@@ -352,15 +357,15 @@ limitations under the License.
     def write_date_time(self):
         now = datetime.datetime.now()
         date_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-        text_widget = self.text_areas[self.current_tab]
+        text_widget = self.text_areas[self.tab]
         cursor_pos = text_widget.index(tk.INSERT)
         text_widget.insert(cursor_pos, date_time_str)
 
     def auto_complete(self):
-        current_text = self.text_areas[0].get("1.0", tk.END).split()
+        current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
         current_word = current_text[len(current_text) - 1]
         if self.suggestions[0].startswith(current_word):
-            text_widget = self.text_areas[self.current_tab]
+            text_widget = self.text_areas[self.tab]
             cursor_pos = text_widget.index(tk.INSERT)
             first_suggestion = self.suggestions_listbox.get(0)
             cursor_pos = cursor_pos.split(".")
@@ -373,11 +378,11 @@ limitations under the License.
             text_widget.insert(cursor_pos, first_suggestion)
     
     def run(self):
-        tab_title = self.notebook.tab(self.current_tab, option="text")
+        tab_title = self.notebook.tab(self.tab, option="text")
         if tab_title.startswith("Tab"):
             self.save_file_as()
         else:
-            file_path = self.notebook.tab(self.current_tab, option="text")
+            file_path = self.notebook.tab(self.tab, option="text")
             try:
                 PryzmaInterpreter.interpret_file(PryzmaInterpreter,file_path)
             except Exception as e:
@@ -385,6 +390,8 @@ limitations under the License.
 
     def terminalheightfunc(self):
         terminalrelheight = simpledialog.askfloat("Change terminal height", "Enter new height:")
+        self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
+        self.notebook.pack(expand=tk.YES, fill=tk.BOTH, pady = (0,self.notebookpady))
         if terminalrelheight:
             terminalrely = 1 - terminalrelheight
             terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight=terminalrelheight)

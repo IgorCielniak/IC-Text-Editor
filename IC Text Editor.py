@@ -162,7 +162,6 @@ class TextEditor:
         file_menu.add_command(label="Save As", command=self.save_file_as)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.master.quit)
-        file_menu.add_command(label="Run", command=self.run)
         menu.add_cascade(label="File", menu=file_menu)
 
         edit_menu = tk.Menu(menu, tearoff=0)
@@ -171,6 +170,7 @@ class TextEditor:
         edit_menu.add_command(label="Paste", command=self.paste)
         edit_menu.add_command(label="Select All", command=self.select_all)
         edit_menu.add_command(label="Find Text", command=self.find_text)
+        edit_menu.add_command(label="Run", command=self.run)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
         insert_menu = tk.Menu(menu, tearoff=0)

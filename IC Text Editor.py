@@ -9,6 +9,7 @@ import json
 from tkinter.colorchooser import askcolor
 from tkterm import Terminal
 
+
 class TextEditor:
     def __init__(self, master):
         self.master = master
@@ -24,7 +25,7 @@ class TextEditor:
         self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.text_areas = []
         terminalrelheight = 0.3
-        self.pixeloffset = 90
+        self.pixeloffset = 93
         self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
         self.tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
@@ -43,6 +44,57 @@ class TextEditor:
         self.current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
         self.current_word = ""
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
+        self.create_file_tree()
+        self.notebook.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.BOTH, pady=(0, self.notebookpady))
+
+
+
+    def on_tree_double_click(self, event):
+        item = self.file_tree.selection()[0]
+        file_path = self.file_tree.item(item, "text")
+        full_path = os.path.join(self.file_tree.item(self.file_tree.parent(item), "text"), file_path)
+        if os.path.isfile(full_path):
+            self.open_file_from_tree(full_path)
+
+    def open_file_from_tree(self, file_path):
+        with open(file_path, "r") as file:
+            content = file.read()
+            self.create_tab()
+            self.text_areas[len(self.text_areas)-1].delete("1.0", tk.END)
+            self.text_areas[len(self.text_areas)-1].insert("1.0", content)
+            self.notebook.tab(len(self.text_areas)-1, text=file_path)
+            self.highlight_words(event=None)
+
+
+    def refresh_file_tree(self):
+        self.populate_tree()
+
+    def create_file_tree(self):
+        self.tree_frame = ttk.Frame(self.master)
+        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.file_tree = ttk.Treeview(self.tree_frame)
+        self.file_tree.pack(expand=True, fill=tk.BOTH)
+        
+        self.file_tree.bind("<Double-1>", self.on_tree_double_click)
+        
+        self.populate_tree()
+
+    def populate_tree(self):
+        path = "."  # Start from the current directory
+        self.file_tree.delete(*self.file_tree.get_children())
+        abspath = os.path.abspath(path)
+        root_node = self.file_tree.insert('', 'end', text=abspath, open=True)
+        self.process_directory(root_node, abspath)
+
+    def process_directory(self, parent, path):
+        for p in os.listdir(path):
+            abspath = os.path.join(path, p)
+            isdir = os.path.isdir(abspath)
+            oid = self.file_tree.insert(parent, 'end', text=p, open=False)
+            if isdir:
+                self.process_directory(oid, abspath)
+
 
     def changeBg(self):
         (triple, hexstr) = askcolor()
@@ -161,6 +213,7 @@ class TextEditor:
         file_menu.add_command(label="Save As", command=self.save_file_as)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.master.quit)
+        file_menu.add_command(label="Refresh File Tree", command=self.refresh_file_tree)
         menu.add_cascade(label="File", menu=file_menu)
 
         edit_menu = tk.Menu(menu, tearoff=0)
@@ -1038,3 +1091,4 @@ terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight = terminalrelh
 
 
 root.mainloop()
+

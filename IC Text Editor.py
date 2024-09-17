@@ -1091,4 +1091,3 @@ terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight = terminalrelh
 
 
 root.mainloop()
-

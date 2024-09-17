@@ -40,7 +40,6 @@ class TextEditor:
         self.suggestions_listbox = None
         self.last_word = None
 
-        self.text_areas[self.tab].bind('<KeyRelease>', self.handle_key_release)
         self.current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
         self.current_word = ""
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]

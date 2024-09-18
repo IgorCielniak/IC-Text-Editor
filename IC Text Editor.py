@@ -459,6 +459,7 @@ class PryzmaInterpreter:
     def __init__(PryzmaInterpreter):
         PryzmaInterpreter.variables = {}
         PryzmaInterpreter.functions = {}
+        PryzmaInterpreter.tk_vars = {}
 
     def interpret_file(PryzmaInterpreter, file_path, *args):
         PryzmaInterpreter.file_path = file_path.strip('"')
@@ -729,6 +730,53 @@ class PryzmaInterpreter:
                         PryzmaInterpreter.variables[list_name][index_1], PryzmaInterpreter.variables[list_name][index_2] = PryzmaInterpreter.variables[list_name][index_2], PryzmaInterpreter.variables[list_name][index_1]
                     except ValueError:
                         print("Invalid index")
+                elif line.startswith("tk"):
+                    command = line[2:].strip()
+                    if command.startswith("window(") and command.endswith(")"):
+                        command = command[7:-1]
+                        PryzmaInterpreter.tk_vars[command] = tk.Tk()
+                    elif command.startswith("mainloop(") and command.endswith(")"):
+                        command = command[9:-1]
+                        PryzmaInterpreter.tk_vars[command].mainloop()
+                    elif command.startswith("create_button(") and command.endswith(")"):
+                        command = command[14:-1]
+                        command = command.split(",")
+                        window = command[1].lstrip()
+                        button_name = command[0].lstrip()
+                        button_text = command[2].lstrip()
+                        button_text = button_text.lstrip()
+                        button_command = command[3].lstrip()
+                        if button_text.startswith('"') and button_text.endswith('"'):
+                            button_text = button_text[1:-1]
+                        else:
+                            button_text = PryzmaInterpreter.variables[button_text]
+                        if len(command) == 2:
+                            PryzmaInterpreter.tk_vars[button_name] = tk.Button(PryzmaInterpreter.tk_vars[window])
+                        elif len(command) == 3:
+                            PryzmaInterpreter.tk_vars[button_name] = tk.Button(PryzmaInterpreter.tk_vars[window],text = button_text)
+                        elif len(command) == 4:
+                            PryzmaInterpreter.tk_vars[button_name] = tk.Button(PryzmaInterpreter.tk_vars[window],text = button_text,command = lambda: PryzmaInterpreter.button_command_exec(PryzmaInterpreter, button_command))
+                        else:
+                            print(f"Invalid create_button command")
+                        PryzmaInterpreter.tk_vars[button_name].pack()
+                    elif command.startswith("create_label(") and command.endswith(")"):
+                        command = command[13:-1]
+                        command = command.split(",")
+                        window = command[1].lstrip()
+                        label_name = command[0].lstrip()
+                        label_text = command[2].lstrip()
+                        label_text = label_text.lstrip()
+                        if label_text.startswith('"') and label_text.endswith('"'):
+                            label_text = label_text[1:-1]
+                        else:
+                            label_text = PryzmaInterpreter.variables[label_text]
+                        if len(command) == 2:
+                            PryzmaInterpreter.tk_vars[label_name] = tk.Label(PryzmaInterpreter.tk_vars[window])
+                        elif len(command) == 3:
+                            PryzmaInterpreter.tk_vars[label_name] = tk.Label(PryzmaInterpreter.tk_vars[window],text = label_text)
+                        else:
+                            print(f"Invalid create_label command")
+                        PryzmaInterpreter.tk_vars[label_name].pack()
                 elif line == "stop":
                     input("Press any key to continue...")
                     break
@@ -739,6 +787,9 @@ class PryzmaInterpreter:
                         print(f"Invalid statement at line {PryzmaInterpreter.current_line}: {line}")
             except Exception as e:
                 print(f"Error at line {PryzmaInterpreter.current_line}: {e}")
+
+    def button_command_exec(self, button_command):
+        PryzmaInterpreter.interpret(PryzmaInterpreter, button_command)
 
     def decrement_variable(PryzmaInterpreter, variable):
         if variable in PryzmaInterpreter.variables:

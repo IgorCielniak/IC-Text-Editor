@@ -25,7 +25,7 @@ class TextEditor:
         self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.text_areas = []
         terminalrelheight = 0.3
-        self.pixeloffset = 93
+        self.pixeloffset = 94
         self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
         self.tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
@@ -46,7 +46,28 @@ class TextEditor:
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
         self.create_file_tree()
         self.notebook.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.BOTH, pady=(0, self.notebookpady))
+    
+    def open_folder(self):
+        folder_path = filedialog.askdirectory()
+        if folder_path:
+            self.repopulate_tree(folder_path)
 
+    def repopulate_tree(self, path):
+        for item in self.file_tree.get_children():
+            self.file_tree.delete(item)
+        self.insert_node('', path)
+
+    def insert_node(self, parent, path):
+        folder_name = os.path.basename(path)
+        node = self.file_tree.insert(parent, 'end', text=folder_name, open=True)
+
+        try:
+            for entry in os.listdir(path):
+                full_path = os.path.join(path, entry)
+                if os.path.isdir(full_path):
+                    self.insert_node(node, full_path)
+        except Exception as e:
+            print(f"Error accessing directory {path}: {e}")
 
 
     def on_tree_double_click(self, event):
@@ -71,7 +92,7 @@ class TextEditor:
 
     def create_file_tree(self):
         self.tree_frame = ttk.Frame(self.master)
-        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y, pady=(0, self.notebookpady))
         
         self.file_tree = ttk.Treeview(self.tree_frame)
         self.file_tree.pack(expand=True, fill=tk.BOTH)
@@ -81,7 +102,7 @@ class TextEditor:
         self.populate_tree()
 
     def populate_tree(self):
-        path = "."  # Start from the current directory
+        path = "."
         self.file_tree.delete(*self.file_tree.get_children())
         abspath = os.path.abspath(path)
         root_node = self.file_tree.insert('', 'end', text=abspath, open=True)
@@ -214,6 +235,7 @@ class TextEditor:
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.master.quit)
         file_menu.add_command(label="Refresh File Tree", command=self.refresh_file_tree)
+        file_menu.add_command(label="Open Folder", command=self.open_folder)
         menu.add_cascade(label="File", menu=file_menu)
 
         edit_menu = tk.Menu(menu, tearoff=0)
@@ -444,6 +466,7 @@ limitations under the License.
         terminalrelheight = simpledialog.askfloat("Change terminal height", "Enter new height:")
         self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
         self.notebook.pack(expand=tk.YES, fill=tk.BOTH, pady = (0,self.notebookpady))
+        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y, pady=(0,self.notebookpady))
         if terminalrelheight:
             terminalrely = 1 - terminalrelheight
             terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight=terminalrelheight)
@@ -735,6 +758,16 @@ class PryzmaInterpreter:
                     if command.startswith("window(") and command.endswith(")"):
                         command = command[7:-1]
                         PryzmaInterpreter.tk_vars[command] = tk.Tk()
+                    elif command.startswith("title(") and command.endswith(")"):
+                        command = command[6:-1]
+                        command = command.split(",")
+                        window = command[0].lstrip()
+                        title = command[1].lstrip()
+                        if title.startswith('"') and title.endswith('"'):
+                            title = title[1:-1]
+                        else:
+                            title = PryzmaInterpreter.variables[title]
+                        PryzmaInterpreter.tk_vars[window].title(title)
                     elif command.startswith("mainloop(") and command.endswith(")"):
                         command = command[9:-1]
                         PryzmaInterpreter.tk_vars[command].mainloop()

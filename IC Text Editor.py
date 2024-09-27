@@ -230,12 +230,11 @@ class TextEditor:
         file_menu.add_command(label="New Tab", command=self.new_file)
         file_menu.add_command(label="Close Tab", command=self.close_tab)
         file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Open Folder", command=self.open_folder)
         file_menu.add_command(label="Save", command=self.save_file)
         file_menu.add_command(label="Save As", command=self.save_file_as)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.master.quit)
-        file_menu.add_command(label="Refresh File Tree", command=self.refresh_file_tree)
-        file_menu.add_command(label="Open Folder", command=self.open_folder)
         menu.add_cascade(label="File", menu=file_menu)
 
         edit_menu = tk.Menu(menu, tearoff=0)
@@ -259,6 +258,7 @@ class TextEditor:
         settings_menu.add_command(label="Shortcuts", command=self.shortcuts)
         settings_menu.add_checkbutton(label="Highliting", variable = self.highlighting)
         settings_menu.add_command(label="terminal height", command = self.terminalheightfunc)
+        settings_menu.add_command(label="Refresh File Tree", command=self.refresh_file_tree)
         menu.add_cascade(label="Settings", menu=settings_menu)
 
         about_menu = tk.Menu(menu, tearoff=0)
@@ -837,6 +837,16 @@ class PryzmaInterpreter:
                             PryzmaInterpreter.variables[variable_name] = PryzmaInterpreter.tk_vars[entry_name].get()
                         else:
                             print(f"Invalid get_entry_text command")
+                    elif command.startswith("set_entry_text(") and command.endswith(")"):
+                        command = command[15:-1]
+                        command = command.split(",")
+                        entry_name = command[0].lstrip()
+                        variable_name = command[1].lstrip()
+                        if entry_name in PryzmaInterpreter.tk_vars:
+                            PryzmaInterpreter.tk_vars[entry_name].delete(0, tk.END)
+                            PryzmaInterpreter.tk_vars[entry_name].insert(0, PryzmaInterpreter.variables[variable_name])
+                        else:
+                            print(f"Invalid set_entry_text command")
                 elif line == "stop":
                     input("Press any key to continue...")
                     break

@@ -22,7 +22,7 @@ class TextEditor:
         self.master.bind('<Control-Shift-F>', lambda event: self.find_text())
         self.master.bind('<Control-Shift-O>', lambda event: self.open_file())
         self.master.bind('<Control-Shift-T>', lambda event: self.add_tab_with_table())
-        self.master.bind('<Alt_R>', lambda event: self.auto_complete())
+        self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.text_areas = []
         terminalrelheight = 0.3
         self.pixeloffset = 94
@@ -145,19 +145,23 @@ class TextEditor:
 
     def handle_key_release(self, event):
         self.highlight_words(event)
-        current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
-        try:
-            current_word = current_text[len(current_text) - 1]
+        text_widget = self.text_areas[self.tab]
+        file_path = self.notebook.tab(self.tab, option="text")
+        if not file_path.startswith("Tab"):
+            file_extension = file_path.split(".")[1]
+            cursor_position = text_widget.index(tk.INSERT)
+            word_start = text_widget.search(r'\s', cursor_position, backwards=True, regexp=True)
+            word_start = text_widget.index(f"{word_start} +1c")
+            current_word = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()[0]
             if self.last_word == current_word:
                 return
             self.last_word = current_word
-            self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(current_word)]
+            self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(current_word)]
             if self.suggestions:
                 self.show_suggestions(self.suggestions)
             else:
                 self.hide_suggestions()
-        except IndexError:
-            self.last_word = None
+
 
     def show_suggestions(self, suggestions):
         if not self.suggestions_popup:
@@ -198,10 +202,19 @@ class TextEditor:
     def parse_syntax_file(self, syntax_file):
         try:
             with open(syntax_file, "r") as file:
-                for line in file:
-                    if ":" in line:
-                        word, color = line.strip().split(":")
-                        self.highlight_rules[word.strip()] = color.strip()
+                lines = file.readlines()
+                if lines and lines[0].startswith('#'):
+                    extension = lines[0][1:].strip()
+                    self.highlight_rules[extension] = {}
+                    for line in lines[1:]:
+                        if ":" in line:
+                            word, color = line.strip().split(":")
+                            self.highlight_rules[extension][word.strip()] = color.strip()
+                else:
+                    for line in lines:
+                        if ":" in line:
+                            word, color = line.strip().split(":")
+                            self.highlight_rules[word.strip()] = color.strip()
         except FileNotFoundError:
             messagebox.showwarning("Warning", f"Syntax file not found: {syntax_file}. No custom highlighting will be applied.")
         except Exception as e:
@@ -313,16 +326,19 @@ class TextEditor:
             self.tab = self.notebook.index("current")
             text_widget = self.text_areas[self.tab]
             text_widget.tag_remove("highlight", "1.0", tk.END)
-            for word, color in self.highlight_rules.items():
-                start = "1.0"
-                while True:
-                    start = text_widget.search(word, start, stopindex=tk.END, nocase=True)
-                    if not start:
-                        break
-                    end = f"{start}+{len(word)}c"
-                    text_widget.tag_add(f"highlight_{word}", start, end)
-                    text_widget.tag_config(f"highlight_{word}", foreground=color)
-                    start = end
+            file_path = self.notebook.tab(self.tab, option="text")
+            file_extension = os.path.splitext(file_path)[1][1:]
+            if file_extension in self.highlight_rules:
+                for word, color in self.highlight_rules[file_extension].items():
+                    start = "1.0"
+                    while True:
+                        start = text_widget.search(word, start, stopindex=tk.END, nocase=True)
+                        if not start:
+                            break
+                        end = f"{start}+{len(word)}c"
+                        text_widget.tag_add(f"highlight_{word}", start, end)
+                        text_widget.tag_config(f"highlight_{word}", foreground=color)
+                        start = end
 
     def save_file(self):
         tab = self.text_areas[self.tab]
@@ -436,8 +452,11 @@ limitations under the License.
         text_widget.insert(cursor_pos, date_time_str)
 
     def auto_complete(self):
-        current_text = self.text_areas[self.tab].get("1.0", tk.END).split()
-        current_word = current_text[len(current_text) - 1]
+        text_widget = self.text_areas[self.tab]
+        cursor_position = text_widget.index(tk.INSERT)
+        word_start = text_widget.search(r'\W', cursor_position, backwards=True, regexp=True)
+        word_start = text_widget.index(f"{word_start} +1c")
+        current_word = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()[1]
         if self.suggestions[0].startswith(current_word):
             text_widget = self.text_areas[self.tab]
             cursor_pos = text_widget.index(tk.INSERT)

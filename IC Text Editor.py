@@ -22,7 +22,7 @@ class TextEditor:
         self.master.bind('<Control-Shift-F>', lambda event: self.find_text())
         self.master.bind('<Control-Shift-O>', lambda event: self.open_file())
         self.master.bind('<Control-Shift-T>', lambda event: self.add_tab_with_table())
-        self.master.bind('<Alt_L>', lambda event: self.auto_complete())
+        self.master.bind('<Alt_R>', lambda event: self.auto_complete())
         self.text_areas = []
         terminalrelheight = 0.3
         self.pixeloffset = 94
@@ -59,7 +59,8 @@ class TextEditor:
 
     def insert_node(self, parent, path):
         folder_name = os.path.basename(path)
-        node = self.file_tree.insert(parent, 'end', text=folder_name, open=True)
+        full_path = path
+        node = self.file_tree.insert(parent, 'end', text=folder_name, open=True, values=(full_path,))
 
         try:
             for entry in os.listdir(path):
@@ -67,13 +68,12 @@ class TextEditor:
                 if os.path.isdir(full_path):
                     self.insert_node(node, full_path)
         except Exception as e:
-            print(f"Error accessing directory {path}: {e}")
+            messagebox.showerror("Error", f"Error accessing directory {path}")
 
 
     def on_tree_double_click(self, event):
         item = self.file_tree.selection()[0]
-        file_path = self.file_tree.item(item, "text")
-        full_path = os.path.join(self.file_tree.item(self.file_tree.parent(item), "text"), file_path)
+        full_path = self.file_tree.item(item, "values")[0]
         if os.path.isfile(full_path):
             self.open_file_from_tree(full_path)
 
@@ -105,14 +105,14 @@ class TextEditor:
         path = "."
         self.file_tree.delete(*self.file_tree.get_children())
         abspath = os.path.abspath(path)
-        root_node = self.file_tree.insert('', 'end', text=abspath, open=True)
+        root_node = self.file_tree.insert('', 'end', text=abspath, open=True, values=(abspath,))
         self.process_directory(root_node, abspath)
 
     def process_directory(self, parent, path):
         for p in os.listdir(path):
             abspath = os.path.join(path, p)
             isdir = os.path.isdir(abspath)
-            oid = self.file_tree.insert(parent, 'end', text=p, open=False)
+            oid = self.file_tree.insert(parent, 'end', text=p, open=False, values=(abspath,))
             if isdir:
                 self.process_directory(oid, abspath)
 
@@ -455,6 +455,11 @@ limitations under the License.
         tab_title = self.notebook.tab(self.tab, option="text")
         if tab_title.startswith("Tab"):
             self.save_file_as()
+            file_path = self.notebook.tab(self.tab, option="text")
+            try:
+                PryzmaInterpreter.interpret_file(PryzmaInterpreter,file_path)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to run: {str(e)}")
         else:
             file_path = self.notebook.tab(self.tab, option="text")
             try:

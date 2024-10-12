@@ -1,3 +1,4 @@
+#pryzma
 use: magenta
 stop: magenta
 exec: magenta

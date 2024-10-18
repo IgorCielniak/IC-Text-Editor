@@ -152,11 +152,11 @@ class TextEditor:
             cursor_position = text_widget.index(tk.INSERT)
             word_start = text_widget.search(r'\s', cursor_position, backwards=True, regexp=True)
             word_start = text_widget.index(f"{word_start} +1c")
-            current_word = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()[0]
-            if self.last_word == current_word:
-                return
-            self.last_word = current_word
-            self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(current_word)]
+            current_word = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()
+            if len(current_word) != 0:
+                self.current_word2 = current_word[0]
+                if current_word != "" or type(current_word) != list:
+                    self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(self.current_word2)]
             if self.suggestions:
                 self.show_suggestions(self.suggestions)
             else:

@@ -152,11 +152,11 @@ class TextEditor:
             cursor_position = text_widget.index(tk.INSERT)
             word_start = text_widget.search(r'\s', cursor_position, backwards=True, regexp=True)
             word_start = text_widget.index(f"{word_start} +1c")
-            current_word = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()
-            if len(current_word) != 0:
-                self.current_word2 = current_word[0]
-                if current_word != "" or type(current_word) != list:
-                    self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(self.current_word2)]
+            current_word2 = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()
+            if len(current_word2) != 0:
+                self.current_word = current_word2[0]
+                if current_word2 != "" or type(current_word2) != list:
+                    self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(self.current_word)]
             if self.suggestions:
                 self.show_suggestions(self.suggestions)
             else:
@@ -456,16 +456,15 @@ limitations under the License.
         cursor_position = text_widget.index(tk.INSERT)
         word_start = text_widget.search(r'\W', cursor_position, backwards=True, regexp=True)
         word_start = text_widget.index(f"{word_start} +1c")
-        current_word = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()[1]
-        if self.suggestions[0].startswith(current_word):
+        if self.suggestions[0].startswith(self.current_word):
             text_widget = self.text_areas[self.tab]
             cursor_pos = text_widget.index(tk.INSERT)
             first_suggestion = self.suggestions_listbox.get(0)
             cursor_pos = cursor_pos.split(".")
             line = str(cursor_pos[0])
             cursor_pos = int(cursor_pos[1])
-            current_word = int(len(current_word))
-            result = line + "." + str(cursor_pos - current_word)
+            len_current_word = int(len(self.current_word))
+            result = line + "." + str(cursor_pos - len_current_word)
             cursor_pos = line + "." + str(cursor_pos)
             text_widget.delete(result, cursor_pos)
             text_widget.insert(cursor_pos, first_suggestion)

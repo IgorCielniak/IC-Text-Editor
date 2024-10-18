@@ -196,7 +196,6 @@ class TextEditor:
                         self.parse_syntax_file(syntax_file)
                 if "pryzma_interpreter_path" in config_data:
                     self.pryzma_interpreter_path = config_data["pryzma_interpreter_path"]
-                    print(f"Pryzma Interpreter Path: {self.pryzma_interpreter_path}")
         except FileNotFoundError:
             messagebox.showwarning("Warning", f"Configuration file not found: {file_path}. No custom highlighting will be applied.")
         except Exception as e:

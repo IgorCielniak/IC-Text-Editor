@@ -197,7 +197,7 @@ class TextEditor:
                 if "pryzma_interpreter_path" in config_data:
                     self.pryzma_interpreter_path = config_data["pryzma_interpreter_path"]
         except FileNotFoundError:
-            messagebox.showwarning("Warning", f"Configuration file not found: {file_path}. No custom highlighting will be applied.")
+            messagebox.showwarning("Warning", f"Configuration file not found: {file_path}.")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load configuration file from {file_path}: {str(e)}")
 

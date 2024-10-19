@@ -1,14 +1,21 @@
+import os
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, filedialog
 from tkinter.scrolledtext import ScrolledText
-import os
-import sys
-import datetime
-import re
-import json
 from tkinter.colorchooser import askcolor
-from tkterm import Terminal
+import sys
+import json
+import datetime
 
+try:
+    from tkterm import Terminal
+except ModuleNotFoundError:
+    yn = input("Some modules aren't installed do you want to install them?(y/n)")
+    if yn.lower() == "y":
+        os.system("pip install tkterm datetime")
+        from tkterm import Terminal
+    else:
+        sys.exit()
 
 class TextEditor:
     def __init__(self, master):

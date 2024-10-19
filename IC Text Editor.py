@@ -6,6 +6,7 @@ from tkinter.colorchooser import askcolor
 import sys
 import json
 import datetime
+import re
 
 try:
     from tkterm import Terminal
@@ -30,6 +31,7 @@ class TextEditor:
         self.master.bind('<Control-Shift-O>', lambda event: self.open_file())
         self.master.bind('<Control-Shift-T>', lambda event: self.add_tab_with_table())
         self.master.bind('<Alt_L>', lambda event: self.auto_complete())
+        self.master.bind('<Control-Shift-L>', lambda event: self.edit_all_occurrences())
         self.text_areas = []
         terminalrelheight = 0.3
         self.pixeloffset = 94
@@ -53,6 +55,34 @@ class TextEditor:
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
         self.create_file_tree()
         self.notebook.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.BOTH, pady=(0, self.notebookpady))
+
+
+    def edit_all_occurrences(self):
+        text_widget = self.text_areas[self.tab]
+        selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else None
+        
+        if selected_text:
+            new_text = simpledialog.askstring("Edit All Occurrences", "Enter new text for all occurrences:", initialvalue=selected_text)
+            if new_text is not None:
+                replace_method = messagebox.askquestion("Choose Replacement Method",
+                                                         "Do you want to replace all occurrences or only exact matches?\n"
+                                                         "Click 'Yes' for All, 'No' for Exact Matches.")
+                
+                content = text_widget.get("1.0", tk.END)
+                
+                if replace_method == 'yes':
+                    updated_content = content.replace(selected_text, new_text)
+                else:
+                    pattern = r'\b' + re.escape(selected_text) + r'\b'
+                    updated_content = re.sub(pattern, new_text, content)
+                
+                text_widget.delete("1.0", tk.END)
+                text_widget.insert("1.0", updated_content)
+        else:
+            messagebox.showwarning("Warning", "Please select a word to edit all occurrences.")
+
+
+
     
     def open_folder(self):
         folder_path = filedialog.askdirectory()
@@ -457,6 +487,8 @@ limitations under the License.
         tree.insert('', '5', values=('Find text', 'Control-Shift-F'))
         tree.insert('', '6', values=('Open file', 'Control-Shift-O'))
         tree.insert('', '7', values=('Table', 'Control-Shift-T'))
+        tree.insert('', '8', values=('Autocomplete', 'Left Alt'))
+        tree.insert('', '9', values=('Replace', 'Control-Shift-L'))
 
         root.mainloop()
 

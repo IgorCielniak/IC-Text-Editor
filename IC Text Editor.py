@@ -267,8 +267,6 @@ class TextEditor:
         edit_menu.add_command(label="Paste", command=self.paste)
         edit_menu.add_command(label="Select All", command=self.select_all)
         edit_menu.add_command(label="Find Text", command=self.find_text)
-        edit_menu.add_command(label="Run", command=self.run)
-        edit_menu.add_command(label="Debug", command=self.debug)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
         insert_menu = tk.Menu(menu, tearoff=0)
@@ -285,6 +283,12 @@ class TextEditor:
         settings_menu.add_command(label="terminal height", command = self.terminalheightfunc)
         settings_menu.add_command(label="Refresh File Tree", command=self.refresh_file_tree)
         menu.add_cascade(label="Settings", menu=settings_menu)
+
+        tools_menu = tk.Menu(menu, tearoff=0)
+        tools_menu.add_command(label="Run", command=self.run)
+        tools_menu.add_command(label="Debug", command=self.debug)
+        tools_menu.add_command(label="Interpreter", command=self.interpreter)
+        menu.add_cascade(label="Tools", menu=tools_menu)
 
         about_menu = tk.Menu(menu, tearoff=0)
         about_menu.add_command(label="Info", command=self.info)
@@ -493,6 +497,13 @@ limitations under the License.
         if self.pryzma_interpreter_path != None:
             file_path = self.notebook.tab(self.tab, option="text")
             os.system(str("python " + self.pryzma_interpreter_path + " " + file_path + " " + "--d"))
+            os.system('cls')
+        else:
+            messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")
+    
+    def interpreter(self):
+        if self.pryzma_interpreter_path != None:
+            os.system(str("python " + self.pryzma_interpreter_path))
             os.system('cls')
         else:
             messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")

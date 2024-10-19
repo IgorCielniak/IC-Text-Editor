@@ -196,6 +196,8 @@ class TextEditor:
                         self.parse_syntax_file(syntax_file)
                 if "pryzma_interpreter_path" in config_data:
                     self.pryzma_interpreter_path = config_data["pryzma_interpreter_path"]
+                else:
+                    self.pryzma_interpreter_path = None
         except FileNotFoundError:
             messagebox.showwarning("Warning", f"Configuration file not found: {file_path}.")
         except Exception as e:
@@ -259,6 +261,7 @@ class TextEditor:
         edit_menu.add_command(label="Select All", command=self.select_all)
         edit_menu.add_command(label="Find Text", command=self.find_text)
         edit_menu.add_command(label="Run", command=self.run)
+        edit_menu.add_command(label="Debug", command=self.debug)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
         insert_menu = tk.Menu(menu, tearoff=0)
@@ -472,8 +475,20 @@ limitations under the License.
             text_widget.insert(cursor_pos, first_suggestion)
 
     def run(self):
-        file_path = self.notebook.tab(self.tab, option="text")
-        os.system(str("python " + self.pryzma_interpreter_path + " " + file_path))
+        if self.pryzma_interpreter_path != None:
+            file_path = self.notebook.tab(self.tab, option="text")
+            os.system(str("python " + self.pryzma_interpreter_path + " " + file_path))
+            os.system('cls')
+        else:
+            messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")
+    
+    def debug(self):
+        if self.pryzma_interpreter_path != None:
+            file_path = self.notebook.tab(self.tab, option="text")
+            os.system(str("python " + self.pryzma_interpreter_path + " " + file_path + " " + "--d"))
+            os.system('cls')
+        else:
+            messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")
 
     def terminalheightfunc(self):
         terminalrelheight = simpledialog.askfloat("Change terminal height", "Enter new height:")
@@ -489,7 +504,7 @@ limitations under the License.
 
 root = tk.Tk()
 
-root.state('zoomed') 
+root.state('zoomed')
 
 text_editor = TextEditor(root)
 

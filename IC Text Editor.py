@@ -193,18 +193,19 @@ class TextEditor:
         file_path = self.notebook.tab(self.tab, option="text")
         if not file_path.startswith("Tab"):
             file_extension = file_path.split(".")[1]
-            cursor_position = text_widget.index(tk.INSERT)
-            word_start = text_widget.search(r'\s', cursor_position, backwards=True, regexp=True)
-            word_start = text_widget.index(f"{word_start} +1c")
-            current_word2 = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()
-            if len(current_word2) != 0:
-                self.current_word = current_word2[0]
-                if current_word2 != "" or type(current_word2) != list:
-                    self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(self.current_word)]
-            if self.suggestions:
-                self.show_suggestions(self.suggestions)
-            else:
-                self.hide_suggestions()
+            if file_extension in self.highlight_rules:
+                cursor_position = text_widget.index(tk.INSERT)
+                word_start = text_widget.search(r'\s', cursor_position, backwards=True, regexp=True)
+                word_start = text_widget.index(f"{word_start} +1c")
+                current_word2 = self.text_areas[self.tab].get(word_start, cursor_position).splitlines()
+                if len(current_word2) != 0:
+                    self.current_word = current_word2[0]
+                    if current_word2 != "" or type(current_word2) != list:
+                        self.suggestions = [word for word in self.highlight_rules[file_extension].keys() if word.startswith(self.current_word)]
+                if self.suggestions:
+                    self.show_suggestions(self.suggestions)
+                else:
+                    self.hide_suggestions()
 
 
     def show_suggestions(self, suggestions):

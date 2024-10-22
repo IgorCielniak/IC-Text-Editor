@@ -13,7 +13,7 @@ try:
 except ModuleNotFoundError:
     yn = input("Some modules aren't installed do you want to install them?(y/n)")
     if yn.lower() == "y":
-        os.system("pip install tkterm datetime")
+        os.system("pip install tkterm")
         from tkterm import Terminal
     else:
         sys.exit()
@@ -139,11 +139,18 @@ class TextEditor:
         self.populate_tree()
 
     def populate_tree(self):
-        path = "."
-        self.file_tree.delete(*self.file_tree.get_children())
-        abspath = os.path.abspath(path)
-        root_node = self.file_tree.insert('', 'end', text=abspath, open=True, values=(abspath,))
-        self.process_directory(root_node, abspath)
+        try:
+            path = "."
+            self.file_tree.delete(*self.file_tree.get_children())
+            abspath = os.path.abspath(path)
+            root_node = self.file_tree.insert('', 'end', text=abspath, open=True, values=(abspath,))
+            self.process_directory(root_node, abspath)
+        except Exception:
+            path = self.app_dir
+            self.file_tree.delete(*self.file_tree.get_children())
+            abspath = os.path.abspath(path)
+            root_node = self.file_tree.insert('', 'end', text=abspath, open=True, values=(abspath,))
+            self.process_directory(root_node, abspath)
 
     def process_directory(self, parent, path):
         for p in os.listdir(path):

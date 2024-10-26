@@ -24,6 +24,7 @@ class TextEditor:
         self.master.bind('<Control-Shift-T>', lambda event: self.add_tab_with_table())
         self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.master.bind('<Control-Shift-L>', lambda event: self.edit_all_occurrences())
+        self.master.bind('<Control-Shift-R>', lambda event: self.run())
         self.text_areas = []
         self.tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
@@ -273,7 +274,7 @@ class TextEditor:
             messagebox.showerror("Error", f"Failed to parse syntax file {syntax_file}: {str(e)}")
 
     def create_tab(self):
-        self.text_area = ScrolledText(self.notebook, wrap=tk.WORD)
+        self.text_area = ScrolledText(self.notebook, wrap=tk.NONE)
         self.text_area.bind('<KeyRelease>', self.handle_key_release)
         self.text_areas.append(self.text_area)
         self.notebook.add(self.text_area, text=f"Tab {len(self.text_areas)}")
@@ -499,6 +500,7 @@ limitations under the License.
         tree.insert('', '7', values=('Table', 'Control-Shift-T'))
         tree.insert('', '8', values=('Autocomplete', 'Left Alt'))
         tree.insert('', '9', values=('Replace', 'Control-Shift-L'))
+        tree.insert('', '10', values=('Run', 'Control-Shift-R'))
 
         root.mainloop()
 

@@ -8,19 +8,11 @@ import json
 import datetime
 import re
 
-try:
-    from tkterm import Terminal
-except ModuleNotFoundError:
-    yn = input("Some modules aren't installed do you want to install them?(y/n)")
-    if yn.lower() == "y":
-        os.system("pip install tkterm")
-        from tkterm import Terminal
-    else:
-        sys.exit()
 
 class TextEditor:
     def __init__(self, master):
         self.master = master
+        self.create_status_bar()
         self.master.title("IC Text Editor")
         self.notebook = ttk.Notebook(self.master)
         self.master.bind('<Control-Shift-N>', lambda event: self.create_tab())
@@ -33,9 +25,6 @@ class TextEditor:
         self.master.bind('<Alt_L>', lambda event: self.auto_complete())
         self.master.bind('<Control-Shift-L>', lambda event: self.edit_all_occurrences())
         self.text_areas = []
-        terminalrelheight = 0.3
-        self.pixeloffset = 94
-        self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
         self.tab = 0
         self.app_dir = os.path.dirname(sys.argv[0])
         self.highlight_rules = {}
@@ -54,7 +43,20 @@ class TextEditor:
         self.current_word = ""
         self.suggestions = [word for word in self.highlight_rules.keys() if word.startswith(self.current_word)]
         self.create_file_tree()
-        self.notebook.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.BOTH, pady=(0, self.notebookpady))
+        self.notebook.pack(side=tk.RIGHT, expand=tk.YES, fill=tk.BOTH)
+
+
+    def create_status_bar(self):
+        self.status_bar = tk.Frame(root, bd=1, relief=tk.SUNKEN)
+        self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.status_label = tk.Label(self.status_bar, text="Line: 1, Column: 0")
+        self.status_label.pack(side=tk.RIGHT)
+
+    def update_status_bar(self, event=None):
+        text_widget = self.text_areas[self.tab]
+        line, column = map(int, text_widget.index(tk.INSERT).split('.'))
+        self.status_label.config(text=f"Line: {line}, Column: {column}")
 
 
     def edit_all_occurrences(self):
@@ -129,7 +131,7 @@ class TextEditor:
 
     def create_file_tree(self):
         self.tree_frame = ttk.Frame(self.master)
-        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y, pady=(0, self.notebookpady))
+        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
         self.file_tree = ttk.Treeview(self.tree_frame)
         self.file_tree.pack(expand=True, fill=tk.BOTH)
@@ -189,6 +191,7 @@ class TextEditor:
 
     def handle_key_release(self, event):
         self.highlight_words(event)
+        self.update_status_bar()
         text_widget = self.text_areas[self.tab]
         file_path = self.notebook.tab(self.tab, option="text")
         if not file_path.startswith("Tab"):
@@ -274,7 +277,7 @@ class TextEditor:
         self.text_area.bind('<KeyRelease>', self.handle_key_release)
         self.text_areas.append(self.text_area)
         self.notebook.add(self.text_area, text=f"Tab {len(self.text_areas)}")
-        self.notebook.pack(expand=tk.YES, fill=tk.BOTH, pady = (0,self.notebookpady))
+        self.notebook.pack(expand=tk.YES, fill=tk.BOTH)
         self.notebook.select(self.tab)
 
     def close_tab(self):
@@ -318,7 +321,6 @@ class TextEditor:
         settings_menu.add_command(label="Change background color", command=self.changeBg)
         settings_menu.add_command(label="Shortcuts", command=self.shortcuts)
         settings_menu.add_checkbutton(label="Highliting", variable = self.highlighting)
-        settings_menu.add_command(label="terminal height", command = self.terminalheightfunc)
         settings_menu.add_command(label="Refresh File Tree", command=self.refresh_file_tree)
         menu.add_cascade(label="Settings", menu=settings_menu)
 
@@ -528,7 +530,12 @@ limitations under the License.
     def run(self):
         if self.pryzma_interpreter_path != None:
             file_path = self.notebook.tab(self.tab, option="text")
-            os.system(str("python " + self.pryzma_interpreter_path + " " + file_path))
+            if not file_path.startswith("Tab"):
+                os.system(str("python " + self.pryzma_interpreter_path + " " + file_path))
+            else:
+                self.save_file()
+                file_path = self.notebook.tab(self.tab, option="text")
+                os.system(str("python " + self.pryzma_interpreter_path + " " + file_path))
             os.system('cls')
         else:
             messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")
@@ -536,7 +543,12 @@ limitations under the License.
     def debug(self):
         if self.pryzma_interpreter_path != None:
             file_path = self.notebook.tab(self.tab, option="text")
-            os.system(str("python " + self.pryzma_interpreter_path + " " + file_path + " " + "--d"))
+            if not file_path.startswith("Tab"):
+                os.system(str("python " + self.pryzma_interpreter_path + " " + file_path + " " + "-d"))
+            else:
+                self.save_file()
+                file_path = self.notebook.tab(self.tab, option="text")
+                os.system(str("python " + self.pryzma_interpreter_path + " " + file_path + " " + "-d"))
             os.system('cls')
         else:
             messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")
@@ -548,16 +560,6 @@ limitations under the License.
         else:
             messagebox.showerror("Error", "Pryzma interpreter path not set. Please set it in settings.")
 
-    def terminalheightfunc(self):
-        terminalrelheight = simpledialog.askfloat("Change terminal height", "Enter new height:")
-        self.notebookpady = (root.winfo_screenheight() - self.pixeloffset) * terminalrelheight
-        self.notebook.pack(expand=tk.YES, fill=tk.BOTH, pady = (0,self.notebookpady))
-        self.tree_frame.pack(side=tk.RIGHT, fill=tk.Y, pady=(0,self.notebookpady))
-        if terminalrelheight:
-            terminalrely = 1 - terminalrelheight
-            terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight=terminalrelheight)
-
-
 
 
 root = tk.Tk()
@@ -565,13 +567,6 @@ root = tk.Tk()
 root.state('zoomed')
 
 text_editor = TextEditor(root)
-
-
-terminalrelheight = 0.3
-terminalrely = 1 - terminalrelheight
-
-terminal = Terminal(root)
-terminal.place(relx=0, rely = terminalrely, relwidth=1, relheight = terminalrelheight)
 
 
 root.mainloop()

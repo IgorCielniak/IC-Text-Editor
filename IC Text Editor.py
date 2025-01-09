@@ -31,7 +31,7 @@ class TextEditor:
         self.highlight_rules = {}
         self.highlighting = tk.IntVar(value=1)
         self.syntax_files = []
-        self.load_config(self.app_dir + "\\config.json")
+        self.load_config(self.app_dir + "./config.json")
         self.create_tab()
         self.tab = self.notebook.index("current")
         self.init_menu()
@@ -566,7 +566,7 @@ limitations under the License.
 
 root = tk.Tk()
 
-root.state('zoomed')
+root.state('normal')
 
 text_editor = TextEditor(root)
 

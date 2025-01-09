@@ -1,37 +1,48 @@
 #pryzma
-use: magenta
-stop: magenta
-exec: magenta
-ifn: #00FF7F
-ifs: #00FF7F
-ifb: #00FF7F
-if: #00FF7F
-/: red
-@: red
-{}: red
-append: dodger blue
-copy: dodger blue
-move : dodger blue
-swap : dodger blue
-pop: dodger blue
-all: orange
-index: orange
-write: orange
-read: orange
-for: purple
-del: magenta
-isanumber: magenta
-in: dark sea green
-str: coral
-type: dark violet
-len: dark orange
-split: deep sky blue
-int:coral
-print: cyan
-cprint: cyan
-input: cyan
-while:green yellow
-whilen:green yellow
-#:grey
-++:cornflower blue
---:cornflower blue
+if:blue
+for:blue
+while:blue
+whilen:blue
+stop:red
+type:cyan
+len:cyan
+splitby:cyan
+split:cyan
+splitlines:cyan
+read:cyan
+in:purple
+index:cyan
+all:cyan
+isanumber:cyan
+dir:cyan
+timenow:cyan
+++:orange
+--:orange
+=:orange
+==:orange
+!=:orange
+<:orange
+<=:orange
+>:orange
+>=:orange
+True:magenta
+False:magenta
+None:magenta
+print:green
+input:green
+use:green
+copy:green
+append:green
+pop:green
+exec:green
+write:green
+delvar:green
+delfunc:green
+move:green
+swap:green
+tk:green
+call:green
+replace:green
+interpret_pryzma:green
+
+

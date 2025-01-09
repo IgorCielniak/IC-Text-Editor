@@ -1,4 +1,5 @@
 {
-    "syntax_files": ["path_to_syntax_highliting_roles_file"],
+    "syntax_files": ["/home/igor/Desktop/IC-Text-Editor/pryzma_syntax_highlighting.txt"],
     "pryzma_interpreter_path": "path_to_the_pryzma_interpreter"
 }
+
